@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="th"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Volleyball Scoreboard</title>
+<style>
+:root{--a:#ff0033;--b:#19c6ff;--ez:cubic-bezier(0.109,0.575,0.333,0.974)}
+body{margin:0;background:transparent;color:#fff;font-family:"Noto Sans Thai","Noto Sans",system-ui,sans-serif;text-shadow:0 1px 6px rgba(0,0,0,.35)}
+#w{width:min(100vw,1100px);margin:0 auto;opacity:0;transition:opacity .6s var(--ez)}
+#tm{width:130px;margin:0 auto;text-align:center;font-weight:700;font-size:28px;line-height:1.3;transition:color .3s var(--ez)}
+#tm.pz{color:#2b1d00;text-shadow:none;border-color:#ffe08a;background:linear-gradient(180deg,rgba(255,255,255,.4),rgba(255,255,255,0) 60%),rgba(255,190,20,.92)}
+#r{display:flex;height:76px;margin-top:-1px}
+#r>*+*,#h div+div{margin-left:-1px}
+.t{flex:1;display:flex;align-items:center;gap:10px;padding:0 14px;min-width:0}
+#T0{background:linear-gradient(180deg,rgba(255,255,255,.3),rgba(255,255,255,0) 55%),color-mix(in srgb,var(--a) 90%,transparent)}
+#T1{flex-direction:row-reverse;background:linear-gradient(180deg,rgba(255,255,255,.3),rgba(255,255,255,0) 55%),color-mix(in srgb,var(--b) 90%,transparent)}
+#g0,#g1{height:52px;width:52px;object-fit:contain}
+.nm{display:flex;flex-direction:column;min-width:0;flex:1}
+#T0 .nm{align-items:flex-end;text-align:right}
+#T1 .nm{align-items:flex-start;text-align:left}
+.nm b{font-size:34px;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nm small{font-size:13px;opacity:.9}
+.d{letter-spacing:3px;font-size:12px;height:14px}
+.ball{width:34px;height:34px;flex:none;object-fit:contain;opacity:0;transform:translateY(14px);transition:opacity .45s var(--ez),transform .55s var(--ez)}
+.ball.on{opacity:1;transform:none}
+.w,.p,.dash{position:relative;overflow:hidden;font-weight:700}
+.w{width:48px;font-size:26px}
+.p{width:92px;font-size:56px}
+.dash{width:36px;display:flex;align-items:center;justify-content:center;font-size:40px}
+.w span,.p span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+#ti{position:relative;overflow:hidden;height:42px;font-weight:700;font-size:22px;margin-top:-1px}
+#ti span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:0 12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#h{display:flex;justify-content:center;margin-top:-1px;flex-wrap:wrap}
+#h div{min-width:92px;text-align:center;padding:6px 10px;font-weight:700;font-size:20px;opacity:.8}
+#h div.cur{opacity:1;border-color:#ffe34d}
+#tm{border-radius:0}
+#g0,#g1,#ug0,#ug1{opacity:0;transform:translateY(14px);transition:opacity .45s var(--ez),transform .55s var(--ez)}
+#g0.on,#g1.on,#ug0.on,#ug1.on{opacity:1;transform:none}
+.d{display:flex;gap:4px;height:14px;align-items:center}
+#T0 .d{justify-content:flex-end}
+.d i{width:9px;height:9px;border-radius:50%;background:#fff;transition:opacity .5s var(--ez),transform .5s var(--ez)}
+.d i.u{opacity:0;transform:scale(.4)}
+#h div{position:relative;overflow:hidden;width:92px;height:34px;padding:0;border-radius:5px}
+#h span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.nm b{font-family:var(--fn,"Noto Sans Thai","Noto Sans",system-ui,sans-serif)}
+#ti span{font-family:var(--fb,"Noto Sans Thai","Noto Sans",system-ui,sans-serif)}
+:root{--ff:"Noto Sans Thai","Noto Sans",system-ui,sans-serif;--sh:linear-gradient(180deg,rgba(255,255,255,.3),rgba(255,255,255,0) 55%)}
+#tm{font-size:calc(28px*var(--zt,1));font-family:var(--ft,var(--ff))}
+.nm b{font-size:calc(34px*var(--zn,1));font-family:var(--fn,var(--ff))}
+.p{font-size:calc(56px*var(--zp,1));font-family:var(--fp,var(--ff))}
+#r{height:calc(76px*max(1,var(--zn,1),var(--zp,1)))}
+#ti{height:calc(42px*max(1,var(--zb,1)));font-size:calc(22px*var(--zb,1))}
+#ti span,#wb span{font-family:var(--fb,var(--ff))}
+#ws span{font-family:var(--fs,var(--ff))}
+#stg{display:grid;min-height:150px}
+.v{grid-area:1/1;min-width:0}
+#vg{align-self:start}
+#vw,#vt{display:flex;flex-direction:column}
+#wb,#ws{position:relative;overflow:hidden;margin-top:-1px;font-weight:700;min-height:0}
+#wb{flex:1.3;font-size:calc(28px*var(--zb,1))}
+#ws{flex:1;font-size:calc(20px*var(--zs,1))}
+#wb span,#ws span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:0 16px;text-align:center}
+#tt{flex:none;height:34px;margin-top:-1px;display:flex;align-items:center;justify-content:center;font-size:calc(20px*var(--zn,1));font-weight:700;font-family:var(--fn,var(--ff));background:var(--sh),color-mix(in srgb,var(--tc,#888) 90%,transparent)}
+#tr{flex:1;display:flex;margin-top:-1px;min-height:0}
+.tc{flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 14px;min-width:0}
+#U0{background:var(--sh),color-mix(in srgb,var(--a) 90%,transparent)}
+#U1{margin-left:-1px;background:var(--sh),color-mix(in srgb,var(--b) 90%,transparent)}
+.th{display:flex;align-items:center;gap:10px;height:38px}
+#U0 .th{justify-content:flex-start}#U1 .th{justify-content:flex-end}
+.th b{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:calc(28px*var(--zn,1));font-family:var(--fn,var(--ff))}
+#ug0,#ug1{height:32px;width:32px;object-fit:contain;flex:none}
+.th .ball{width:30px;height:30px}
+.tsr{display:flex;align-items:center;justify-content:center;gap:18px}
+.big{position:relative;overflow:hidden;width:150px;height:calc(70px*max(1,var(--zp,1)));font-size:calc(66px*var(--zp,1));font-weight:700;font-family:var(--fp,var(--ff))}
+.big span,.sw span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.sr{display:flex;align-items:center;gap:10px;font-size:22px;font-weight:700}
+.sw{position:relative;overflow:hidden;width:44px;height:44px;font-size:30px}
+.sr{font-size:calc(22px*var(--ze,1));font-family:var(--fe,var(--ff))}
+.sw{font-size:calc(30px*var(--ze,1))}
+.w{font-size:calc(26px*var(--ze,1));font-family:var(--fe,var(--ff))}
+</style>
+<style id="skin">
+/* solid skin: flat colors, black tiles between the team colors, glow on numbers, banner text and the ball */
+:root{--ink:#06080d;--ink2:#10141f;--gold:#ffc82e;--mint:#2ee6a6;--ice:#eef5ff;--fa:#fff;--fb2:#fff}
+body{text-shadow:none}
+#tm,.t,.w,.p,.dash,#ti,#h div,.gl,.tc{-webkit-backdrop-filter:none;backdrop-filter:none;border:0;box-shadow:none;background:var(--ink)}
+#tm{color:var(--ice)}
+#tm.pz{background:var(--gold);color:#1a1200}
+#T0,#T1,#U0,#U1{background:var(--ink);color:#fff}
+.p{background:var(--ink);color:#fff}
+.w{background:var(--ink2);color:var(--mint)}
+.dash{background:var(--ink2);color:var(--gold);text-shadow:0 0 12px rgba(255,200,46,.8)}
+#ti,#wb{background:var(--ink)}
+#ti span,#wb span{background:linear-gradient(90deg,color-mix(in srgb,var(--ba) 62%,#fff),#fff 50%,color-mix(in srgb,var(--bb) 62%,#fff));-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none;filter:drop-shadow(0 0 8px rgba(255,255,255,.45))}
+#h div{background:var(--ink2);color:var(--ice);opacity:1}
+#h div.cur{background:var(--gold);color:#1a1200}
+.d i{background:currentColor;box-shadow:0 0 6px currentColor}
+.ball.dk{filter:none}
+.ball{filter:drop-shadow(0 0 7px var(--gold)) drop-shadow(0 0 16px rgba(255,200,46,.65))}
+#ws{background:var(--gold);color:#1a1200}
+#tt{background:var(--ink);color:#fff}
+.sw{background:var(--ink);color:var(--mint)}
+@property --bp{syntax:'<length>';inherits:true;initial-value:0px}
+@property --ba{syntax:'<color>';inherits:true;initial-value:#ff0033}
+@property --bb{syntax:'<color>';inherits:true;initial-value:#19c6ff}
+:root{--ba:#ff0033;--bb:#19c6ff;transition:--ba .7s var(--ez),--bb .7s var(--ez)}
+.t,.tc,#tt,.p,.w{position:relative;isolation:isolate}
+.fl{position:absolute;inset:0;overflow:hidden;z-index:-1;pointer-events:none}
+.fl.bar{inset:auto 0 0 0;height:4px}
+.fc{position:absolute;inset:0}
+.wp .gt,.wp .big span{background:linear-gradient(to bottom,var(--fo,#fff) calc(var(--bp) - var(--y0,0px)),var(--fw,#fff) calc(var(--bp) - var(--y0,0px)));-webkit-background-clip:text;background-clip:text;color:transparent}
+.wp .d i{background:linear-gradient(to bottom,var(--fo,#fff) calc(var(--bp) - var(--y0,0px)),var(--fw,#fff) calc(var(--bp) - var(--y0,0px)))}
+.wp .gt{padding-block:.18em;margin-block:-.18em}
+</style></head><body>
+<div id="w">
+ <div id="tm">0:00</div>
+ <div id="stg"><div class="v" id="vg">
+ <div id="r">
+  <div class="t" id="T0"><img id="g0" style="display:none"><img class="ball" id="v0" src="../img/vb.png" alt=""><div class="nm"><b id="n0"></b><small id="c0"></small><span class="d" id="d0"></span></div></div>
+  <div class="w" id="w0"><span>0</span></div><div class="p" id="p0"><span>0</span></div><div class="dash">-</div><div class="p" id="p1"><span>0</span></div><div class="w" id="w1"><span>0</span></div>
+  <div class="t" id="T1"><img id="g1" style="display:none"><img class="ball" id="v1" src="../img/vb.png" alt=""><div class="nm"><b id="n1"></b><small id="c1"></small><span class="d" id="d1"></span></div></div>
+ </div>
+ <div id="ti" style="display:none"><span></span></div>
+ <div id="h"><div style="display:none"><span>0 - 0</span></div><div style="display:none"><span>0 - 0</span></div><div style="display:none"><span>0 - 0</span></div><div style="display:none"><span>0 - 0</span></div><div style="display:none"><span>0 - 0</span></div></div>
+</div>
+<div class="v" id="vw" style="display:none"><div id="wb" class="gl" style="display:none"><span></span></div><div id="ws" class="gl" style="display:none"><span></span></div></div>
+<div class="v" id="vt" style="display:none"><div id="tt" class="gl"><span id="ttx" class="gt">ไทม์เอาต์</span></div><div id="tr"><div class="tc" id="U0"><div class="th"><img id="ug0" style="display:none"><b id="un0"></b><img class="ball" id="ub0" src="../img/vb.png" alt=""></div><div class="tsr"><div class="big" id="up0"><span>0</span></div><div class="sr"><span class="gt">เซต</span><div class="sw" id="uw0"><span>0</span></div></div></div></div><div class="tc" id="U1"><div class="th"><img class="ball" id="ub1" src="../img/vb.png" alt=""><b id="un1"></b><img id="ug1" style="display:none"></div><div class="tsr"><div class="big" id="up1"><span>0</span></div><div class="sr"><span class="gt">เซต</span><div class="sw" id="uw1"><span>0</span></div></div></div></div></div></div>
+</div>
+</div>
+<script>
+const BD = (new URLSearchParams(location.search).get("b") || "").toLowerCase().replace(/[^a-z0-9_-]/g, "").slice(0, 32); // which board: ...?b=court2 (none = the original board)
+const WS = "wss://vbsb.imaxsport-imax.workers.dev" + (BD ? "?b=" + BD : "");
+const q = id => document.getElementById(id);
+const EZ = "cubic-bezier(0.109,0.575,0.333,0.974)", RM = matchMedia("(prefers-reduced-motion:reduce)").matches;
+let T = { ok: 0 }, first = true, D = null, off = 0, curB = null, hs = [], LG = ["", ""], FL = {}, M = null, MV = null, TA = null, mt = 0, CB = {};
+
+// tally-counter roll: score up = new number rises in; score down = the opposite
+function roll(el, v, skip, u){
+  const old = el.lastElementChild; if(old.textContent == String(v)) return;
+  if(skip){ old.textContent = v; return; }
+  const up = u === undefined ? +v > +old.textContent : u, n = document.createElement("span"); n.textContent = v; el.appendChild(n);
+  const o = { duration: RM ? 0 : 450, easing: EZ, fill: "both" };
+  n.animate([{ transform: `translateY(${up ? "100%" : "-100%"})`, opacity: 0 }, { transform: "none", opacity: 1 }], o).onfinish = e => e.target.cancel();
+  old.animate([{ transform: "none", opacity: 1 }, { transform: `translateY(${up ? "-100%" : "100%"})`, opacity: 0 }], o).onfinish = () => old.remove();
+}
+// banner / subheader lines rotate on server time so every screen shows the same line
+const clean = L => (L || []).map(x => x.trim()).filter(Boolean);
+function pick(L, d){ if(!L.length) return "";
+  return L[(d.as ? Math.floor((Date.now() + off) / (1000 * (d.ms || 5))) : (d.li || 0)) % L.length]; }
+function tickB(skip){
+  if(!D) return;
+  [["ti", D.ml ? pick(D._ls, D) : ""], ["wb", pick(D._ls, D)], ["ws", pick(D._wl, D)]].forEach(([id, b]) => {
+    if(b === CB[id]) return; CB[id] = b; const el = q(id), hid = el.style.display === "none";
+    el.style.display = b ? "" : "none"; if(b) roll(el, b, skip || hid, true); });
+}
+// screen change: old view fades up and out, new one rises in (same curve as everything else)
+function setMode(m, skip){
+  if(m === M) return; const old = M && q("v"+M), nx = q("v"+m), tm = q("tm"), tk = ++mt; M = m;
+  const OUT = [{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translateY(-18px)" }],
+        IN = [{ opacity: 0, transform: "translateY(18px)" }, { opacity: 1, transform: "none" }];
+  const go = () => { if(TA){ TA.cancel(); TA = null; } if(tk !== mt) return; MV = m; nx.style.display = "";
+    tm.style.display = (D.timer || m === "t") ? "" : "none";
+    const o = { duration: skip || RM ? 0 : 500, easing: EZ }; nx.animate(IN, o); tm.animate(IN, o); };
+  if(old && !skip && !RM){ // the timer moves with the screen: out with the old view, in with the new one
+    TA = tm.animate(OUT, { duration: 300, easing: EZ, fill: "forwards" });
+    old.animate(OUT, { duration: 300, easing: EZ }).onfinish = () => { old.style.display = "none"; go(); }; }
+  else { if(old) old.style.display = "none"; go(); }
+}
+function logo(i, u){
+  if(LG[i] === u) return; LG[i] = u; const els = [q("g"+i), q("ug"+i)]; els.forEach(e => e.classList.remove("on"));
+  if(!u){ setTimeout(() => { if(!LG[i]) els.forEach(e => e.style.display = "none"); }, 550); return; }
+  const im = new Image();
+  im.onload = () => { if(LG[i] !== u) return; els.forEach(e => { e.src = u; e.style.display = ""; }); void els[0].offsetWidth; els.forEach(e => e.classList.add("on")); };
+  im.src = u; // logo fades in only after it has loaded successfully
+}
+function font(v, file){
+  const st = document.documentElement.style;
+  if(!file){ FL[v] = ""; st.removeProperty(v); return; }
+  if(FL[v] === file) return; FL[v] = file;
+  const fam = "f_" + file.replace(/[^a-z0-9]/gi, "_"), ff = new FontFace(fam, `url("../fonts/${encodeURI(file)}")`);
+  ff.load().then(f => { document.fonts.add(f); if(FL[v] === file) st.setProperty(v, `"${fam}","Noto Sans Thai",system-ui,sans-serif`); }).catch(() => {});
+}
+function curMs(){ if(!T.ok) return 0; const e = Date.now() - T.la; return Math.max(0, T.ev === "p" ? (e < T.dur ? T.fz : e - T.dur) : e); }
+function fg(c){ const n = parseInt(c.slice(1), 16); return (0.299 * (n >> 16) + 0.587 * (n >> 8 & 255) + 0.114 * (n & 255)) > 140 ? "#111a2b" : "#fff"; }
+new Image().src = "../img/vbblk.png"; // preload so the swap never flickers
+function set(id, v){ const el = q(id); if(el.textContent !== String(v)) el.textContent = v; }
+
+// ---- team colour fills ---------------------------------------------------------------
+// Every team block has a .fl wrapper that holds colour layers over a black base. A colour change slides the
+// old layer up and out while the new one rises in; the text inside follows the same moving edge, switching
+// between white and dark contrast exactly where the edge crosses it.
+let ZV = {}, BC = [];
+const PC = new Map();   // wrapper -> colour it shows (or is sliding to); null = black
+let HOLD = false;       // true while the swap sequence drives the colours
+function mkLayer(c){ const l = document.createElement("div"); l.className = "fc"; l.style.background = c; return l; }
+function visible(el){ return !!(el.offsetWidth || el.offsetHeight); }
+function fin(fl){ if(fl._fin) fl._fin(); }
+function cur(fl){ return fl._fin ? fl._to : (PC.has(fl) ? PC.get(fl) : null); }
+function paint(fl, c){   // instant, no animation
+  fin(fl); fl.replaceChildren(); if(c) fl.appendChild(mkLayer(c)); PC.set(fl, c);
+  if(!fl.classList.contains("bar")) fl.parentElement.style.color = c ? fg(c) : "#fff";
+}
+function slide(fl, to){  // null = black. Resolves when the slide has finished.
+  if(cur(fl) === to) return Promise.resolve();
+  fin(fl);
+  const from = PC.has(fl) ? PC.get(fl) : null, bar = fl.classList.contains("bar"), o = fl.parentElement;
+  if(RM || !visible(fl)){ paint(fl, to); return Promise.resolve(); }
+  return new Promise(res => {
+    const down = to === null, opt = { duration: 600, easing: EZ, fill: "both" }, an = [];
+    const oldL = fl.lastElementChild, newL = to ? mkLayer(to) : null;
+    if(newL){ fl.appendChild(newL); an.push(newL.animate([{ transform: "translateY(100%)" }, { transform: "none" }], opt)); }
+    if(oldL) an.push(oldL.animate([{ transform: "none" }, { transform: down ? "translateY(100%)" : "translateY(-100%)" }], opt));
+    let nodes = [];
+    if(!bar){ // text: above the edge / below the edge get their own contrast colour
+      const f0 = from ? fg(from) : "#fff", f1 = to ? fg(to) : "#fff", H = o.offsetHeight;
+      o.style.setProperty("--fo", down ? f1 : f0); o.style.setProperty("--fw", down ? f0 : f1);
+      o.classList.add("wp");
+      const top = o.getBoundingClientRect().top; nodes = [...o.querySelectorAll(".gt, .big, .d")];
+      nodes.forEach(n => n.style.setProperty("--y0", (n.getBoundingClientRect().top - top) + "px"));
+      an.push(o.animate([{ "--bp": (down ? 0 : H) + "px" }, { "--bp": (down ? H : 0) + "px" }], opt));
+    }
+    const done = () => { if(fl._fin !== done) return; fl._fin = null; an.forEach(a => a.cancel());
+      if(oldL) oldL.remove(); if(!to) fl.replaceChildren();
+      if(!bar){ o.classList.remove("wp"); nodes.forEach(n => n.style.removeProperty("--y0")); o.style.color = to ? fg(to) : "#fff"; }
+      PC.set(fl, to); res(); };
+    fl._to = to; fl._fin = done; an[0].onfinish = done;
+  });
+}
+const fillOf = id => q(id).firstElementChild;
+function targets(d){ const L = [];
+  [0,1].forEach(i => ["T"+i, "U"+i, "p"+i, "w"+i].forEach(id => L.push([fillOf(id), d.c[i]])));
+  L.push([fillOf("tt"), d.tt == null ? "#888" : d.c[d.tt]]); return L; }
+function addFl(id, bar){ const f = document.createElement("div"); f.className = "fl" + (bar ? " bar" : ""); q(id).prepend(f); }
+[0,1].forEach(i => { addFl("T"+i); addFl("U"+i); addFl("p"+i, 1); addFl("w"+i, 1); ["n"+i, "c"+i, "un"+i].forEach(id => q(id).classList.add("gt")); });
+addFl("tt");
+
+// swap sides: colours slide down to black, names/scores/logos change behind the black, new colours slide up
+let SW = null, busy = false, queued = null;
+function recv(d){
+  if(busy){ queued = d; return; }
+  const sw = d.sw || 0;
+  if(first){ first = false; SW = sw; render(d, true); return; }
+  if(sw !== SW){ SW = sw; swapSeq(d); return; }
+  render(d, false);
+}
+async function swapSeq(d){
+  busy = true; HOLD = true;
+  await Promise.all(targets(d).map(([fl]) => slide(fl, null)));
+  render(d, true);
+  await Promise.all(targets(d).map(([fl, c]) => slide(fl, c)));
+  HOLD = false; busy = false;
+  if(queued){ const n = queued; queued = null; recv(n); }
+}
+
+function render(d, skip){
+  const r = document.documentElement.style; // banner gradient fades to the new team colours
+  if(BC[0] !== d.c[0] || BC[1] !== d.c[1]){ BC = [d.c[0], d.c[1]];
+    if(skip) r.transition = "none"; r.setProperty("--ba", d.c[0]); r.setProperty("--bb", d.c[1]); if(skip){ void document.documentElement.offsetWidth; r.transition = ""; } }
+  if(!HOLD) targets(d).forEach(([fl, c]) => skip ? paint(fl, c) : slide(fl, c));
+  [0,1].forEach(i => { const dk = fg(d.c[i]) !== "#fff", s = dk ? "../img/vbblk.png" : "../img/vb.png"; // black ball image on yellow-ish teams
+    ["v", "ub"].forEach(p => { const e = q(p+i); e.classList.toggle("dk", dk); if(e.getAttribute("src") !== s) e.setAttribute("src", s); }); });
+  for(const k of "nbspte"){ font("--f"+k, d["f"+k] || ""); const z = (d["z"+k] || 100) / 100; if(ZV[k] !== z){ ZV[k] = z; document.documentElement.style.setProperty("--z"+k, z); } }
+  let w = [0,0]; d.sc.forEach((s,i) => { if(i < d.set){ if(s[0] > s[1]) w[0]++; else if(s[1] > s[0]) w[1]++; } });
+  [0,1].forEach(i => {
+    set("n"+i, d.t[i]); set("c"+i, d.rec[i] || ""); q("c"+i).style.display = (d.rec[i] || "").trim() ? "" : "none"; roll(q("p"+i), d.sc[d.set][i], skip); roll(q("w"+i), w[i], skip);
+    const dd = q("d"+i); while(dd.children.length < d.tmo) dd.appendChild(document.createElement("i")); while(dd.children.length > d.tmo) dd.lastChild.remove();
+    [...dd.children].forEach((c, k) => c.classList.toggle("u", k < d.to[i])); // used timeouts fade out
+    logo(i, d.logo[i] || "");
+    q("v"+i).classList.toggle("on", d.srv === i && !d.hs);
+  });
+  if(d.now) off = d.now - Date.now(); D = d; d._ls = clean(d.ls); d._wl = clean(d.wl); tickB(skip);
+  q("ttx").textContent = d.tt == null ? "ไทม์เอาต์" : "ไทม์เอาต์ · " + d.t[d.tt];
+  [0,1].forEach(i => { q("ub"+i).classList.toggle("on", d.srv === i && !d.hs); set("un"+i, d.t[i]); roll(q("up"+i), d.sc[d.set][i], skip); roll(q("uw"+i), w[i], skip); });
+  setMode(d.mode || "g", skip);
+  q("tm").style.display = (d.timer || MV === "t") ? "" : "none";
+  let fz = d.fz; // time to show while paused: the server's value if it sent one, else what this screen was showing
+  if(fz === undefined) fz = T.tid === d.tid ? T.fz : (d.ev === "p" && !skip ? (T.pz ? T.fz : curMs()) : 0);
+  T = { ok: !!d.at, ev: d.ev, tid: d.tid, la: Date.now() - (d.now - d.at), dur: d.dur || 0, fz: fz || 0, pz: false };
+  [...q("h").children].forEach((c, i) => { const s = d.sc[i], show = i <= d.set && (s[0] || s[1] || i < d.set), sum = s[0] + s[1];
+    c.classList.toggle("cur", i === d.set);
+    if(show){ const was = c.style.display === "none"; c.style.display = ""; roll(c, s[0] + " - " + s[1], skip || was, sum >= (hs[i] || 0)); hs[i] = sum;
+      if(was && !skip && !RM) c.animate([{ opacity: 0, transform: "translateY(14px)" }, { opacity: i === d.set ? 1 : .8, transform: "none" }], { duration: 450, easing: EZ }); }
+    else { c.style.display = "none"; hs[i] = 0; } });
+  q("w").style.opacity = 1;
+}
+
+// timer: counts up during a rally, freezes when a team scores, then restarts from 0:00
+let lastTm = "", lastGold = null; // every page write forces a repaint of the overlay, so only write on change
+setInterval(() => { let m = 0, pz = false;
+  if(T.ok){ const e = Date.now() - T.la;
+    if(T.ev === "p"){ if(e < T.dur){ m = T.fz; pz = true; } else m = e - T.dur; } else m = e; }
+  const s = Math.floor(Math.max(0, m) / 1000);
+  const txt = Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); if(txt !== lastTm){ lastTm = txt; q("tm").textContent = txt; }
+  T.pz = pz; const gold = pz || MV === "t"; if(gold !== lastGold){ lastGold = gold; q("tm").classList.toggle("pz", gold); }
+  tickB(false); }, 100);
+
+render({t:["เหย้า","เยือน"],c:["#ff0033","#19c6ff"],rec:["",""],ml:false,ls:[],wl:[],mode:"g",tt:null,logo:["",""],sc:[[0,0],[0,0],[0,0],[0,0],[0,0]],set:0,to:[0,0],srv:null,hs:false,title:"",timer:true,tmo:2,dur:0,ev:"r",now:0,at:0}, true);
+// Connection that heals itself. A phone/IRL Pro can lose the socket without any "close" event (half-open),
+// which is what freezes the board after a quiet intermission. So we ping the Worker and reconnect if nothing comes back.
+let sock, lastRx = 0, rt;
+function conn(){ clearTimeout(rt);
+  if(sock){ sock.onclose = sock.onmessage = null; try{ sock.close(); }catch(_){} }
+  const w = sock = new WebSocket(WS); first = true; lastRx = Date.now(); // a fresh connection shows the current state without animating
+  w.onmessage = e => { lastRx = Date.now(); if(e.data === "pong") return; let d; try{ d = JSON.parse(e.data); }catch(_){ return; } if(!d.err) recv(d); };
+  w.onclose = () => { if(sock === w) rt = setTimeout(conn, 1000); }; }
+function wake(){ if(document.hidden) return; // coming back online / back to the tab: check the line right away
+  if(sock && sock.readyState === 1){ const t = lastRx; sock.send("ping"); setTimeout(() => { if(lastRx === t) conn(); }, 4000); } else conn(); }
+setInterval(() => { if(!sock || sock.readyState > 1) return;
+  if(Date.now() - lastRx > 40000) conn(); else if(sock.readyState === 1) sock.send("ping"); }, 15000);
+addEventListener("online", wake); addEventListener("pageshow", wake); document.addEventListener("visibilitychange", wake);
+conn();
+</script></body></html>

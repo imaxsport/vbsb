@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="th"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>แผงควบคุมวอลเลย์บอล</title>
+<style>
+body{margin:0;padding:8px;background:#10151f;color:#eef;font:15px "Noto Sans Thai",system-ui,sans-serif}
+.g{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.c{background:#1a2235;border-radius:8px;padding:10px;margin-bottom:8px}
+h3{margin:0 0 8px;font-size:15px;color:#9bb}
+button{width:100%;padding:14px 6px;border:0;border-radius:6px;background:#2f6bff;color:#fff;font:inherit;font-size:16px;margin-top:6px}
+button:active{filter:brightness(1.4)}
+.x{background:#3b4562}.r{background:#d63a3a}
+input,textarea,select{width:100%;box-sizing:border-box;padding:9px;margin:3px 0;background:#10151f;color:#fff;border:1px solid #334;border-radius:6px;font:inherit}
+textarea{min-height:110px}
+input[type=checkbox]{width:auto}
+.lp{display:flex;gap:8px;align-items:center}.lp img{width:38px;height:38px;object-fit:contain;background:#10151f;border:1px solid #334;border-radius:6px;flex:none;visibility:hidden}.lp img.on{visibility:visible}.lp select{flex:1;min-width:0}
+.n{font-size:44px;text-align:center;font-weight:700}
+.l{text-align:center;color:#9bb}
+summary{cursor:pointer;color:#9bb;padding:2px 0 8px}
+#pv{position:relative;overflow:hidden;width:100%;background:#0a0e17}
+#pf{position:absolute;left:0;top:0;width:1100px;height:210px;border:0;transform-origin:0 0}
+#s{position:sticky;top:0;z-index:2;padding:6px;margin:-8px -8px 8px;text-align:center;background:#d63a3a}
+#s.ok{background:#1c9b5a}
+#modes{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px}
+#modes button{margin:0;background:#2a3350;transition:background .4s,color .4s}
+#modes button.on{background:#ffb800;color:#201500;font-weight:700}
+.cp{margin:3px 0}
+.cpbar{display:flex;gap:6px;align-items:center}
+.cpsw{width:44px;height:40px;flex:none;margin:0;padding:0;border:2px solid #4a5578;border-radius:6px;background:#888}
+.cpcode{margin:0;min-width:0;font-family:ui-monospace,Menlo,monospace}
+.cpcode.bad{border-color:#d63a3a;background:#2a1418}
+.cppanel{margin-top:6px}
+.cpsv{position:relative;height:130px;border-radius:6px;touch-action:none;cursor:crosshair;outline-offset:2px;background:linear-gradient(to top,#000,rgba(0,0,0,0)),linear-gradient(to right,#fff,hsl(var(--h,0),100%,50%))}
+.cph{position:absolute;width:20px;height:20px;margin:-10px 0 0 -10px;border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 1px #000,inset 0 0 0 1px #000;pointer-events:none}
+.cphue{-webkit-appearance:none;appearance:none;width:100%;height:20px;margin:8px 0;padding:0;border:0;border-radius:10px;background:linear-gradient(to right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)}
+.cphue::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:#fff;border:2px solid #000}
+.cphue::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:#fff;border:2px solid #000}
+.cprgb{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
+.cprgb label{font-size:12px;color:#9bb;text-align:center}
+.cprgb input{margin:0;padding:8px 2px;text-align:center}
+.cprec{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-top:6px}
+.cpr{margin:0;padding:0;height:32px;border:1px solid #556;border-radius:5px;background:#10151f}
+.cpr.e{border-style:dashed;opacity:.45}
+</style></head><body>
+<div id="pin" style="position:fixed;inset:0;z-index:9;background:#10151f;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px">
+ <h2 style="margin:0">ใส่รหัส PIN</h2>
+ <input id="pi" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" style="width:170px;font-size:34px;text-align:center;letter-spacing:8px"></div>
+<div id="s">กำลังเชื่อมต่อ…</div>
+<div class="c"><details id="bd"><summary id="bsum">สนาม / บอร์ด</summary>
+ <select id="bs" onchange="goBoard(this.value)"></select>
+ <div class="g"><input id="bnew" placeholder="ชื่อสนามใหม่ เช่น court2" maxlength="32" autocapitalize="none" autocomplete="off"><button class="x" onclick="goBoard(q('bnew').value,1)">สร้าง / เปิด</button></div>
+ <div class="l" style="margin-top:8px">ลิงก์หน้าจอแสดงผลของสนามนี้ (ใส่ในแอปสตรีม)</div>
+ <input id="bu" readonly onclick="this.select()"><button class="x" id="bcp" onclick="copyU()">คัดลอกลิงก์</button></details></div>
+
+<div class="c"><details open ontoggle="window.prev&&prev(this.open)"><summary>ตัวอย่างสกอร์บอร์ด (สดจากหน้าจอจริง)</summary>
+ <div id="pv"><iframe id="pf"></iframe></div></details></div>
+
+<div id="modes"><button data-m="w" onclick="go('w')">วอร์มอัพ / พักเกม</button><button data-m="g" onclick="go('g')">เกม</button><button data-m="t" onclick="go('t')">ไทม์เอาต์</button></div>
+
+<section class="m" id="m-w" style="display:none">
+ <div class="c"><h3>หัวข้อย่อย (ใต้แบนเนอร์) ค่าเริ่มต้น: warming-up</h3>
+  <textarea id="wl" oninput="S.wl=this.value.split('\n').slice(0,50);send()"></textarea>
+  <div class="l">หลายบรรทัดได้ ใช้เวลาสลับและโหมดเลื่อนเดียวกับแบนเนอร์</div></div>
+ <button class="x" onclick="S.ev='r';S.dur=0;S.tid++;send()">เริ่มจับเวลาวอร์มอัพใหม่</button>
+ <div class="fc" data-k="bst" style="margin-top:8px"></div>
+</section>
+
+<section class="m" id="m-g" style="display:none">
+ <div class="g" id="teams"></div>
+ <div class="c"><h3 id="v"></h3>
+  <div class="g"><button onclick="S.srv=S.srv==null?0:1-S.srv;send()">สลับ</button>
+  <button class="x" onclick="S.hs=!S.hs;send()">ซ่อน / แสดง</button></div></div>
+ <div class="c"><h3 id="sn"></h3>
+  <div class="g"><button onclick="setn(1)">เซตถัดไป +1</button><button class="x" onclick="setn(-1)">ย้อนกลับ -1</button></div></div>
+ <div class="c"><h3>รีเซ็ต</h3>
+  <div class="g"><button class="x" onclick="rs()">รีเซ็ตเซตนี้</button>
+  <button class="r" onclick="confirm('รีเซ็ตคะแนน เซต และไทม์เอาต์ทั้งหมด?')&&ra()">รีเซ็ตทั้งหมด</button></div>
+  <button class="x" onclick="S.ev='r';S.dur=0;S.tid++;send()">เริ่มจับเวลาใหม่</button></div>
+ <div class="c" id="gs"><h3>ตั้งค่า</h3>
+  <div class="g" id="setup"></div>
+  <div class="l" style="font-size:12px;margin:4px 0 8px">ช่องสีรับรหัส เช่น #ff0033, rgb(255,0,51), hsl(350,100%,50%) หรือชื่อสี เช่น gold</div>
+  <button class="x" onclick="swap()">สลับฝั่ง</button>
+  <label><input type="checkbox" id="tg" onchange="S.timer=this.checked;send()"> แสดงตัวจับเวลา</label>
+  หยุดเวลาหลังได้แต้ม (วินาที) <input id="ts" type="number" min="1" oninput="S.pz=+this.value||5;send()">
+  ไทม์เอาต์ต่อเซต <input id="tm" type="number" min="1" max="5" oninput="S.tmo=+this.value||2;send()"></div>
+ <div class="fc" data-k="npbte"></div>
+</section>
+
+<section class="m" id="m-t" style="display:none">
+ <div class="c"><h3 id="tth"></h3>
+  <div class="g" id="tpk"><button id="tp0" onclick="startTo(0)"></button><button id="tp1" onclick="startTo(1)"></button></div>
+  <button id="etb" class="r" onclick="go('g')">จบไทม์เอาต์ กลับสู่เกม</button>
+  <button class="x" onclick="S.ev='r';S.dur=0;S.tid++;send()">เริ่มจับเวลาใหม่</button></div>
+ <div class="fc" data-k="npte"></div>
+</section>
+
+<div class="c" id="bn"><h3>แบนเนอร์หลายบรรทัด</h3>
+ <label><input type="checkbox" id="ml" onchange="S.ml=this.checked;send()"> แสดงแบนเนอร์ในหน้าเกม</label>
+ <textarea id="ls" placeholder="พิมพ์ 1 บรรทัดต่อ 1 แบนเนอร์ (ใส่บรรทัดเดียวก็ใช้เป็นหัวข้อได้)" oninput="S.ls=this.value.split('\n').slice(0,50);send()"></textarea>
+ <div class="l" id="lc"></div>
+ สลับทุก (วินาที) <input id="ms" type="number" min="1" oninput="S.ms=Math.max(1,+this.value||5);send()">
+ <label><input type="checkbox" id="as" onchange="S.as=this.checked;send()"> เลื่อนอัตโนมัติ</label>
+ <div class="g"><button class="x" onclick="bn(-1)">◀ บรรทัดก่อนหน้า</button><button class="x" onclick="bn(1)">บรรทัดถัดไป ▶</button></div></div>
+
+<script>onerror=function(m){var s=document.getElementById("s");s.textContent="สคริปต์ผิดพลาด: "+m;s.className="";}</script>
+<script>
+const BD = (new URLSearchParams(location.search).get("b") || "").toLowerCase().replace(/[^a-z0-9_-]/g, "").slice(0, 32); // which board: ...?b=court2 (none = the original board)
+const WS = "wss://vbsb.imaxsport-imax.workers.dev" + (BD ? "?b=" + BD : "");
+const REPO = "imaxsport/vbsb"; // GitHub user/repo that hosts the /fonts folder
+const q = id => document.getElementById(id), EZ = "cubic-bezier(0.109,0.575,0.333,0.974)";
+const FN = { n:"ชื่อทีม", b:"แบนเนอร์", s:"หัวข้อย่อย", p:"คะแนน", t:"ตัวจับเวลา", e:"เซต" };
+let key = localStorage.k || "", ws, got = 0;
+let S = { t:["เหย้า","เยือน"], c:["#ff0033","#19c6ff"], rec:["",""], logo:["",""],
+  sc:[[0,0],[0,0],[0,0],[0,0],[0,0]], set:0, to:[0,0], srv:null, hs:false, timer:true, pz:5, tmo:2, dur:0, tid:0, ev:"r",
+  ml:false, ls:[], ms:5, as:true, li:0, mode:"g", tt:null, wl:["warming-up"],
+  sw:0, fn:"", fb:"", fs:"", fp:"", ft:"", zn:100, zb:100, zs:100, zp:100, zt:100, fe:"", ze:100 };
+
+q("teams").innerHTML = [0,1].map(i => `<div class="c"><h3 id="h${i}"></h3>
+ <div class="n" id="p${i}"></div><div class="l">คะแนน</div>
+ <div class="g"><button onclick="pt(${i},1)">+1</button><button class="x" onclick="pt(${i},-1)">-1</button></div>
+ <div class="l" id="o${i}" style="margin-top:10px"></div>
+ <div class="g"><button onclick="to(${i},1)">+1</button><button class="x" onclick="to(${i},-1)">-1</button></div></div>`).join("");
+q("setup").innerHTML = [0,1].map(i => `<div>ชื่อทีม ${i+1}<input id="t${i}" oninput="S.t[${i}]=this.value;send()">
+ สถิติ/อันดับ (เว้นว่างได้)<input id="r${i}" oninput="S.rec[${i}]=this.value;send()">
+ สี<div class="cp" id="cp${i}"></div>
+ โลโก้
+ <div class="lp"><img id="lt${i}" alt=""><select id="lp${i}" onchange="pickLogo(${i},this.value)"><option value="">เลือกรูปจากโฟลเดอร์ img…</option></select></div>
+ <input id="l${i}" placeholder="หรือวางลิงก์รูป https://…" oninput="S.logo[${i}]=this.value;send();syncLogo(${i},1)"></div>`).join("");
+document.querySelectorAll(".fc").forEach(e => e.innerHTML = `<div class="c"><h3>ฟอนต์และขนาด</h3>` + [...e.dataset.k].map(k =>
+ `<div class="g"><div>${FN[k]}<select data-f="${k}" onchange="S['f${k}']=this.value;send()"></select></div>
+  <div>ขนาด (%)<input data-z="${k}" type="number" min="30" max="400" oninput="S['z${k}']=+this.value||100;send()"></div></div>`).join("") + `</div>`);
+
+// ---- colour picker: type a code, drag the square, or tap a recent colour. Sends once when you finish. ----
+const hx = n => (n < 16 ? "0" : "") + n.toString(16), toHex = c => "#" + hx(c[0]) + hx(c[1]) + hx(c[2]), clamp = (x, a, b) => Math.min(b, Math.max(a, x));
+function hsv2rgb(h, s, v){ const f = n => { const k = (n + h / 60) % 6; return v - v * s * Math.max(0, Math.min(k, 4 - k, 1)); }; return [f(5), f(3), f(1)].map(x => Math.round(x * 255)); }
+function hsl2rgb(h, s, l){ s /= 100; l /= 100; const a = s * Math.min(l, 1 - l), f = n => { const k = (n + h / 30) % 12; return l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)); }; return [f(0), f(8), f(4)].map(x => Math.round(x * 255)); }
+function rgb2hsv(r, g, b){ r /= 255; g /= 255; b /= 255; const mx = Math.max(r, g, b), d = mx - Math.min(r, g, b); let h = 0;
+  if(d){ h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; h *= 60; if(h < 0) h += 360; } return [h, mx ? d / mx : 0, mx]; }
+let probe; // understands: #f03, #ff0033, ff0033, rgb(255,0,51), 255 0 51, hsl(350,100%,50%), colour names like gold. strict = only complete forms (used while typing)
+function parseColor(str, strict){
+  const s = String(str).trim().toLowerCase(); if(!s) return null;
+  let m = s.match(/^#?([0-9a-f]{6})$/) || (!strict && s.match(/^#?([0-9a-f]{3})$/));
+  if(m){ let x = m[1]; if(x.length === 3) x = x.replace(/./g, c => c + c); const n = parseInt(x, 16); return [n >> 16, n >> 8 & 255, n & 255]; }
+  m = s.match(/^(?:rgb\(\s*)?(\d{1,3})\s*[,\s]\s*(\d{1,3})\s*[,\s]\s*(\d{1,3})\s*\)?$/);
+  if(m) return [m[1], m[2], m[3]].map(x => clamp(+x, 0, 255));
+  m = s.match(/^hsl\(\s*(\d{1,3})(?:deg)?\s*[,\s]\s*(\d{1,3})%?\s*[,\s]\s*(\d{1,3})%?\s*\)$/);
+  if(m) return hsl2rgb(+m[1] % 360, clamp(+m[2], 0, 100), clamp(+m[3], 0, 100));
+  if(strict || !/^[a-z]+$/.test(s) || /^(transparent|currentcolor|inherit|initial|unset|revert)$/.test(s)) return null;
+  probe = probe || document.createElement("i"); probe.style.color = ""; probe.style.color = s; if(!probe.style.color) return null;
+  document.body.appendChild(probe); const c = getComputedStyle(probe).color.match(/\d+/g); probe.remove(); return c ? c.slice(0, 3).map(Number) : null;
+}
+let RC = []; try{ RC = JSON.parse(localStorage.rc || "[]").filter(c => /^#[0-9a-f]{6}$/.test(c)).slice(0, 5); }catch(e){}
+const PK = [];
+function pushRecent(hex){ RC = [hex, ...RC.filter(c => c !== hex)].slice(0, 5); try{ localStorage.rc = JSON.stringify(RC); }catch(e){} PK.forEach(p => p.recent()); }
+function makePicker(i){
+  const root = q("cp" + i);
+  root.innerHTML = `<div class="cpbar"><button type="button" class="cpsw" aria-label="เปิดตัวเลือกสี" aria-expanded="false"></button><input class="cpcode" maxlength="30" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="รหัสสี" placeholder="#ff0033"></div>
+<div class="cppanel" hidden><div class="cpsv" tabindex="0" aria-label="ความสดและความสว่าง"><i class="cph"></i></div><input class="cphue" type="range" min="0" max="360" step="1" aria-label="เฉดสี">
+<div class="cprgb"><label>R<input type="number" min="0" max="255" inputmode="numeric"></label><label>G<input type="number" min="0" max="255" inputmode="numeric"></label><label>B<input type="number" min="0" max="255" inputmode="numeric"></label></div></div>
+<div class="cprec" aria-label="สีที่ใช้ล่าสุด"></div>`;
+  const $ = x => root.querySelector(x), sw = $(".cpsw"), code = $(".cpcode"), pn = $(".cppanel"), sv = $(".cpsv"), hd = $(".cph"), hue = $(".cphue"), rec = $(".cprec"), rgbIn = [...root.querySelectorAll(".cprgb input")];
+  let h = 0, s = 1, v = 1, ex = null, raf = 0, kt = 0;       // ex = the exact colour when it came from a code (avoids rounding drift)
+  const rgb = () => ex || hsv2rgb(h, s, v), read = () => rgbIn.map(x => clamp(parseInt(x.value, 10) || 0, 0, 255));
+  function paint(){ const c = rgb(), hex = toHex(c);          // only touches what changed on screen; never the field being typed in
+    sw.style.background = hex; sv.style.setProperty("--h", Math.round(h)); hd.style.left = s * 100 + "%"; hd.style.top = (1 - v) * 100 + "%"; hue.value = Math.round(h);
+    rgbIn.forEach((e, k) => { if(document.activeElement !== e) e.value = c[k]; }); if(document.activeElement !== code) code.value = hex; }
+  function set(c, commit){ const t = rgb2hsv(c[0], c[1], c[2]); if(t[1] > 0 && t[2] > 0) h = t[0]; s = t[1]; v = t[2]; ex = c; paint(); if(commit) done(); }
+  function done(){ const hex = toHex(rgb()); if(S.c[i] !== hex){ S.c[i] = hex; sendSoon(); } pushRecent(hex); }
+  function recent(){ let o = ""; for(let k = 0; k < 5; k++){ const c = RC[k]; o += c ? `<button type="button" class="cpr" data-c="${c}" style="background:${c}" aria-label="${c}"></button>` : `<button type="button" class="cpr e" disabled aria-hidden="true"></button>`; } rec.innerHTML = o; }
+  function close(){ pn.hidden = true; sw.setAttribute("aria-expanded", "false"); }
+  const svMove = e => { const r = sv.getBoundingClientRect(); s = clamp((e.clientX - r.left) / r.width, 0, 1); v = 1 - clamp((e.clientY - r.top) / r.height, 0, 1); ex = null; if(!raf) raf = requestAnimationFrame(() => { raf = 0; paint(); }); };
+  sv.onpointerdown = e => { sv.setPointerCapture(e.pointerId); svMove(e); sv.onpointermove = svMove; };
+  sv.onpointerup = sv.onpointercancel = () => { sv.onpointermove = null; if(raf){ cancelAnimationFrame(raf); raf = 0; } paint(); done(); };
+  sv.onkeydown = e => { const d = e.shiftKey ? .1 : .01; let ok = true;
+    if(e.key === "ArrowLeft") s = clamp(s - d, 0, 1); else if(e.key === "ArrowRight") s = clamp(s + d, 0, 1); else if(e.key === "ArrowUp") v = clamp(v + d, 0, 1); else if(e.key === "ArrowDown") v = clamp(v - d, 0, 1); else ok = false;
+    if(ok){ e.preventDefault(); ex = null; paint(); clearTimeout(kt); kt = setTimeout(done, 500); } };
+  hue.oninput = () => { h = +hue.value; ex = null; paint(); }; hue.onchange = done;
+  rgbIn.forEach(e => { e.oninput = () => set(read(), false); e.onchange = () => { set(read(), true); rgbIn.forEach((x, k) => x.value = rgb()[k]); }; });
+  code.onfocus = () => code.select();
+  code.oninput = () => { const c = parseColor(code.value, true); if(c) set(c, false); };
+  code.onchange = () => { const c = parseColor(code.value);
+    if(c){ set(c, true); code.value = toHex(rgb()); code.classList.remove("bad"); }
+    else { code.classList.add("bad"); setTimeout(() => { code.classList.remove("bad"); code.value = toHex(rgb()); }, 900); } };
+  sw.onclick = () => { const open = pn.hidden; PK.forEach(p => p.close()); if(open){ pn.hidden = false; sw.setAttribute("aria-expanded", "true"); } };
+  rec.onclick = e => { const b = e.target.closest("button[data-c]"); if(b) set(parseColor(b.dataset.c, true), true); };
+  recent(); paint();
+  return { ext(hex){ const c = parseColor(hex, true); if(c) set(c, false); }, recent, close };
+}
+[0,1].forEach(i => PK[i] = makePicker(i));
+const cur = () => S.sc[S.set];
+function stamp(){ S.dur=0; S.ev="r"; S.tid++; } // restart the timer
+function pt(i,d){ const v = cur()[i]+d; if(v<0) return; cur()[i]=v;
+  if(d>0){ S.srv=i; S.hs=false; S.dur=(S.pz||5)*1000; S.ev="p"; S.tid++; } send(); }
+function startTo(i){ if(S.to[i]>=S.tmo && !confirm("ใช้ไทม์เอาต์ครบแล้ว เข้าไทม์เอาต์ต่อไหม?")) return;
+  if(S.to[i]<S.tmo) S.to[i]++; S.tt=i; S.mode="t"; stamp(); send(); }
+function to(i,d){ if(d>0) return startTo(i); S.to[i]=Math.max(0,S.to[i]+d); send(); }
+function go(m){ S.mode=m; if(m!=="t") S.tt=null; stamp(); send(); }
+function setn(d){ S.set=Math.max(0,Math.min(4,S.set+d)); S.to=[0,0]; stamp(); send(); }
+function swap(){ S.sw = Date.now(); for(const k of ["t","c","rec","logo","to"]) S[k].reverse();
+  S.sc.forEach(r=>r.reverse()); if(S.srv!=null) S.srv=1-S.srv; if(S.tt!=null) S.tt=1-S.tt; fill(); send(); }
+function rs(){ S.sc[S.set]=[0,0]; S.srv=null; stamp(); send(); }
+function ra(){ S.sc=S.sc.map(()=>[0,0]); S.set=0; S.to=[0,0]; S.srv=null; stamp(); send(); }
+function bn(d){ const f = a => a.filter(x=>x.trim()).length, n = Math.max(f(S.ls), f(S.wl), 1); S.li = ((S.li||0)+d+n) % n; send(); }
+
+// switch the visible control section with the same fade/slide curve as the display
+let shown = null, vt = 0;
+function view(m){ if(m === shown) return;
+  const old = shown && q("m-"+shown), nx = q("m-"+m), tk = ++vt, first = !shown; shown = m;
+  document.querySelectorAll("#modes button").forEach(b => b.classList.toggle("on", b.dataset.m === m));
+  const open = () => { if(tk !== vt) return;
+    if(m === "w") q("m-w").append(q("bn")); else if(m === "g") q("m-g").insertBefore(q("bn"), q("gs"));
+    q("bn").style.display = m === "t" ? "none" : ""; nx.style.display = "";
+    nx.animate([{opacity:0,transform:"translateY(14px)"},{opacity:1,transform:"none"}], {duration:first?0:450,easing:EZ}); };
+  if(old) old.animate([{opacity:1,transform:"none"},{opacity:0,transform:"translateY(-12px)"}], {duration:220,easing:EZ}).onfinish = () => { old.style.display="none"; open(); };
+  else open(); }
+
+let st; function sendSoon(){ clearTimeout(st); st = setTimeout(send, 300); } // colour picker fires continuously: send once it settles
+function send(){ if(ws&&ws.readyState==1) ws.send(JSON.stringify({key,state:S})); render(); }
+function fill(){ [0,1].forEach(i=>{ q("t"+i).value=S.t[i]; q("r"+i).value=S.rec[i]; PK[i]&&PK[i].ext(S.c[i]); q("l"+i).value=S.logo[i]; syncLogo(i); });
+  q("tg").checked=S.timer; q("ts").value=S.pz||5; q("tm").value=S.tmo;
+  q("ml").checked=S.ml; q("ls").value=S.ls.join("\n"); q("wl").value=S.wl.join("\n"); q("ms").value=S.ms; q("as").checked=S.as;
+  document.querySelectorAll("[data-f]").forEach(e=>e.value=S["f"+e.dataset.f]||"");
+  document.querySelectorAll("[data-z]").forEach(e=>e.value=S["z"+e.dataset.z]||100); }
+function render(){ [0,1].forEach(i=>{ q("h"+i).textContent=S.t[i]; q("p"+i).textContent=cur()[i]; q("o"+i).textContent=`ไทม์เอาต์: ${S.to[i]} จาก ${S.tmo}`; q("tp"+i).textContent=S.t[i]+" ขอไทม์เอาต์"; });
+  q("v").textContent = (S.srv==null ? "ยังไม่มีทีมเสิร์ฟ" : S.t[S.srv]+" เสิร์ฟ") + (S.hs?" (ซ่อน)":"");
+  q("sn").textContent = `เซตที่ ${S.set+1} จาก 5`;
+  q("lc").textContent = `${S.ls.filter(x=>x.trim()).length} / 50 บรรทัด`;
+  q("tth").textContent = S.tt==null ? "เลือกทีมที่ขอไทม์เอาต์" : S.t[S.tt]+" ขอไทม์เอาต์";
+  q("tpk").style.display = S.tt==null ? "" : "none"; q("etb").style.display = S.tt==null ? "none" : "";
+  view(S.mode || "g"); }
+// the preview is a second copy of the display: unload it while collapsed so it costs the phone nothing
+function prev(on){ const f = q("pf"), s = on ? "../display/" + (BD ? "?b=" + BD : "") : "about:blank"; if(f.getAttribute("src") !== s) f.setAttribute("src", s); fit(); }
+function fit(){ const w=q("pv"), k=Math.min(1,w.clientWidth/1100); q("pf").style.transform=`scale(${k})`; w.style.height=(210*k)+"px"; }
+addEventListener("resize",fit);
+
+async function loadFonts(){ let L;
+  try{ const r = await fetch(`https://api.github.com/repos/${REPO}/contents/fonts`); L = (await r.json()).map(f=>f.name); localStorage.fl = JSON.stringify(L); }
+  catch(e){ L = JSON.parse(localStorage.fl || "[]"); }
+  L = L.filter(n=>/\.(ttf|otf)$/i.test(n)).sort();
+  const o = '<option value="">ค่าเริ่มต้น</option>' + L.map(n=>`<option value="${n}">${n.replace(/\.(ttf|otf)$/i,"")}</option>`).join("");
+  document.querySelectorAll("[data-f]").forEach(e => e.innerHTML = o); fill(); }
+
+// Image picker: lists the repo's /img folder through the GitHub API (cached for offline), picking one fills in its raw link
+let IM = [];
+const esc = t => t.replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");
+async function loadImgs(){ let L;
+  try{ const r = await fetch(`https://api.github.com/repos/${REPO}/contents/img`); L = (await r.json()).filter(f => f.download_url).map(f => [f.name, f.download_url]); localStorage.il = JSON.stringify(L); }
+  catch(e){ try{ L = JSON.parse(localStorage.il || "[]"); }catch(_){ L = []; } }
+  IM = L.filter(([n]) => /\.(png|jpe?g|webp|gif|svg)$/i.test(n) && !/^vb(blk)?\./i.test(n)).sort((a,b) => a[0].localeCompare(b[0])); // vb.png / vbblk.png are the serve ball, not logos
+  const o = '<option value="">เลือกรูปจากโฟลเดอร์ img…</option>' + IM.map(([n,u]) => `<option value="${esc(u)}">${esc(n.replace(/\.[^.]+$/,""))}</option>`).join("");
+  [0,1].forEach(i => { q("lp"+i).innerHTML = o; syncLogo(i); }); }
+function pickLogo(i, u){ if(!u) return; S.logo[i] = u; q("l"+i).value = u; syncLogo(i); send(); }
+const lt = [0, 0];
+function syncLogo(i, typing){ const u = S.logo[i] || "", sel = q("lp"+i), im = q("lt"+i);
+  sel.value = IM.some(x => x[1] === u) ? u : ""; // shows the matching name, or the prompt when the link is custom
+  clearTimeout(lt[i]); lt[i] = setTimeout(() => { // thumbnail waits until typing pauses, so half-typed links don't fire requests
+    if(u){ if(im.getAttribute("src") !== u) im.src = u; im.classList.add("on"); } else { im.removeAttribute("src"); im.classList.remove("on"); } }, typing ? 500 : 0); }
+
+let lastRx = 0, rt;
+function conn(){ clearTimeout(rt);
+  if(ws){ ws.onclose = ws.onmessage = ws.onopen = null; try{ ws.close(); }catch(_){} }
+  const w = ws = new WebSocket(WS); lastRx = Date.now();
+  w.onopen = () => { q("s").textContent="ออนไลน์" + (BD ? " · บอร์ด: " + BD : ""); q("s").className="ok"; w.send(JSON.stringify({key,check:1})); };
+  w.onclose = () => { if(ws !== w) return; q("s").textContent="เชื่อมต่อ "+WS.split("?")[0]+" ไม่ได้ (กำลังลองใหม่)"; q("s").className=""; rt = setTimeout(conn,1000); };
+  w.onmessage = e => { lastRx = Date.now(); if(e.data === "pong") return; let d; try{ d = JSON.parse(e.data); }catch(_){ return; }
+    if(d.ok){ if(!got) send(); }
+    else if(d.err){ localStorage.removeItem("k"); alert(d.err==2 ? "ลองผิดหลายครั้งเกินไป รอ 1 นาที" : "PIN ไม่ถูกต้อง"); location.reload(); }
+    else if(got){ if(d.mode !== S.mode || d.tt !== S.tt){ S.mode=d.mode; S.tt=d.tt; render(); } } // another controller changed the mode
+    else { got=1; S={...S,...d}; fill(); render(); } }; }
+// same self-healing as the display: ping the Worker, reconnect when the line has gone quiet
+setInterval(() => { if(!ws || ws.readyState > 1) return;
+  if(Date.now() - lastRx > 40000) conn(); else if(ws.readyState === 1) ws.send("ping"); }, 15000);
+addEventListener("online", () => { if(key && !document.hidden) conn(); });
+// Board selector: the boards this device has opened are remembered; picking one reopens the panel on that board
+const cleanB = n => String(n || "").toLowerCase().replace(/[^a-z0-9_-]/g, "").slice(0, 32);
+function boards(){ let L; try{ L = JSON.parse(localStorage.bl || "[]"); }catch(_){ L = []; } if(!Array.isArray(L)) L = [];
+  L = L.map(cleanB).filter(Boolean); if(BD && !L.includes(BD)) L.push(BD); try{ localStorage.bl = JSON.stringify(L); }catch(_){} return L; }
+function goBoard(n, isNew){ n = cleanB(n); if(isNew && !n){ q("bnew").focus(); return; } if(n === BD){ q("bnew").value = ""; return; }
+  if(n){ const L = boards(); if(!L.includes(n)){ L.push(n); try{ localStorage.bl = JSON.stringify(L); }catch(_){} } }
+  location.href = location.pathname + (n ? "?b=" + n : ""); }
+function dispUrl(){ let u = "../display/"; try{ u = new URL(u, location.href).href; }catch(_){} /* preview windows (blob:/srcdoc) have no real address */ return u + (BD ? "?b=" + BD : ""); }
+function copyU(){ const u = q("bu"), b = q("bcp"), t = b.textContent; u.value = dispUrl();
+  const ok = () => { b.textContent = "คัดลอกแล้ว ✓"; setTimeout(() => b.textContent = t, 1500); };
+  if(navigator.clipboard) navigator.clipboard.writeText(u.value).then(ok, () => { u.select(); document.execCommand("copy"); ok(); });
+  else { u.select(); try{ document.execCommand("copy"); ok(); }catch(_){} } }
+(function(){ q("bs").innerHTML = '<option value="">บอร์ดหลัก (ลิงก์เดิม)</option>' + boards().map(n => `<option value="${n}">${n}</option>`).join("");
+  q("bs").value = BD; q("bu").value = dispUrl(); q("bsum").textContent = "สนาม / บอร์ด: " + (BD || "บอร์ดหลัก"); })();
+fill(); render(); fit(); loadFonts(); loadImgs();
+if(key){ q("pin").remove(); conn(); }
+else q("pi").oninput = e => { if(e.target.value.length==4){ key=e.target.value; localStorage.k=key; q("pin").remove(); conn(); } };
+</script></body></html>
